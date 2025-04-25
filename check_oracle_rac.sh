@@ -63,4 +63,22 @@ else
     echo "Alert log not found at $GRID_ALERT_LOG" | tee -a $LOGFILE
 fi
 
+# 12. ASM Disk Device Usage and Mapping
+echo -e "\n-- 12. ASM Disk Device Details (V\$ASM_DISK) --" | tee -a $LOGFILE
+sqlplus -S / as sysasm <<EOF >> $LOGFILE
+SET LINESIZE 160
+COL NAME FOR A15
+COL PATH FOR A50
+COL HEADER_STATUS FOR A12
+COL MODE_STATUS FOR A10
+COL STATE FOR A10
+COL TOTAL_MB FOR 9999999
+COL FREE_MB FOR 9999999
+SELECT NAME, PATH, HEADER_STATUS, MODE_STATUS, STATE, TOTAL_MB, FREE_MB,
+       ROUND(FREE_MB/TOTAL_MB*100,2) AS FREE_PCT
+FROM V\$ASM_DISK
+ORDER BY NAME;
+EXIT;
+EOF
+
 echo -e "\n========= Health Check Completed ? Log saved at: $LOGFILE =========" | tee -a $LOGFILE
